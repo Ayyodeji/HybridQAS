@@ -122,70 +122,70 @@ df_train.tail()
 
 """##### PHASE 2"""
 
-# import pandas as pd
-# import os
-# from transformers import BertTokenizer, GPT2Tokenizer, LongformerTokenizer
-# from summarizer import Summarizer, TransformerSummarizer
-# import nltk
+import pandas as pd
+import os
+from transformers import BertTokenizer, GPT2Tokenizer, LongformerTokenizer
+from summarizer import Summarizer, TransformerSummarizer
+import nltk
 
-# # Download the NLTK sentence tokenizer data (if not already downloaded)
-# nltk.download('punkt')
+# Download the NLTK sentence tokenizer data (if not already downloaded)
+nltk.download('punkt')
 
-# # Load the pre-trained tokenizers and models
-# bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-# gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-# gpt2_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-# longformer_tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
-# extractive_model = Summarizer()
+# Load the pre-trained tokenizers and models
+bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+gpt2_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+longformer_tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
+extractive_model = Summarizer()
 
-# # Define the compression summary function
-# def compression_summary(text, num_sentences=3):
-#     # Tokenize the text into sentences using NLTK sentence tokenizer
-#     sentences = nltk.sent_tokenize(text)
+# Define the compression summary function
+def compression_summary(text, num_sentences=3):
+    # Tokenize the text into sentences using NLTK sentence tokenizer
+    sentences = nltk.sent_tokenize(text)
 
-#     # Calculate scores for each sentence based on length and position in the text
-#     scores = [len(sent.strip().split()) / len(text.split()) + i / len(sentences) for i, sent in enumerate(sentences)]
+    # Calculate scores for each sentence based on length and position in the text
+    scores = [len(sent.strip().split()) / len(text.split()) + i / len(sentences) for i, sent in enumerate(sentences)]
 
-#     # Sort sentences based on scores and select the top sentences
-#     selected_sentences = [sentences[i] for i in sorted(range(len(scores)), key=lambda k: scores[k], reverse=True)[:num_sentences]]
+    # Sort sentences based on scores and select the top sentences
+    selected_sentences = [sentences[i] for i in sorted(range(len(scores)), key=lambda k: scores[k], reverse=True)[:num_sentences]]
 
-#     # Check if the last character of the generated summary is a period and remove it if present
-#     if selected_sentences[-1].strip().endswith("."):
-#         selected_sentences[-1] = selected_sentences[-1].strip()[:-1]
+    # Check if the last character of the generated summary is a period and remove it if present
+    if selected_sentences[-1].strip().endswith("."):
+        selected_sentences[-1] = selected_sentences[-1].strip()[:-1]
 
-#     return " ".join(selected_sentences)
+    return " ".join(selected_sentences)
 
-# # Define the hybrid summarization pipeline
-# def hybrid_summarization_pipeline(text):
-#     # Step 1: Extractive Summarization using BERT-based model
-#     inputs_extractive = bert_tokenizer(text, return_tensors="pt", max_length=512, truncation=True, padding=True)
-#     extractive_summary = extractive_model(text, min_length=60)
+# Define the hybrid summarization pipeline
+def hybrid_summarization_pipeline(text):
+    # Step 1: Extractive Summarization using BERT-based model
+    inputs_extractive = bert_tokenizer(text, return_tensors="pt", max_length=512, truncation=True, padding=True)
+    extractive_summary = extractive_model(text, min_length=60)
 
-#     # Step 2: Abstractive Summarization using GPT-2-based model
-#     inputs_abstractive = gpt2_tokenizer(extractive_summary, return_tensors="pt", max_length=512, truncation=True, padding=True)
+    # Step 2: Abstractive Summarization using GPT-2-based model
+    inputs_abstractive = gpt2_tokenizer(extractive_summary, return_tensors="pt", max_length=512, truncation=True, padding=True)
 
-#     # Step 3: Compressive Summarization using sentence scoring with the output of the abstractive model as input
-#     compression_summary_text = compression_summary(extractive_summary, num_sentences=3)
-#     final_summary = compression_summary_text
+    # Step 3: Compressive Summarization using sentence scoring with the output of the abstractive model as input
+    compression_summary_text = compression_summary(extractive_summary, num_sentences=3)
+    final_summary = compression_summary_text
 
-#     return final_summary
+    return final_summary
 
-# # Load the dataset and test the model using the hybrid pipeline
-# data = "/content/drive/My Drive/cnn_dailymail"
-# truncate = -1
-# df = pd.read_csv(os.path.join(data, "train.csv"))[:truncate]
+# Load the dataset and test the model using the hybrid pipeline
+data = "/content/drive/My Drive/cnn_dailymail"
+truncate = -1
+df = pd.read_csv(os.path.join(data, "train.csv"))[:truncate]
 
-# for index, row in df.iterrows():
-#     text = row['article']
-#     summary = row['highlights']
+for index, row in df.iterrows():
+    text = row['article']
+    summary = row['highlights']
 
-#     # Test the hybrid pipeline on the text
-#     generated_summary = hybrid_summarization_pipeline(text)
+    # Test the hybrid pipeline on the text
+    generated_summary = hybrid_summarization_pipeline(text)
 
-#     # Print the original summary and the generated summary
-#     print("Original Summary:", summary)
-#     print("Generated Summary:", generated_summary)
-#     print("-" * 30)
+    # Print the original summary and the generated summary
+    print("Original Summary:", summary)
+    print("Generated Summary:", generated_summary)
+    print("-" * 30)
 
 """### ADD DENSE LAYER EXTRACTIVE BERT STEP**
 ##### *FINETUNE*
