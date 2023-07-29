@@ -60,65 +60,65 @@ df_train.tail()
 ##### PHASE 1
 """
 
-# from transformers import BertTokenizer, GPT2Tokenizer, LongformerTokenizer
-# from summarizer import Summarizer, TransformerSummarizer
-# import nltk
+from transformers import BertTokenizer, GPT2Tokenizer, LongformerTokenizer
+from summarizer import Summarizer, TransformerSummarizer
+import nltk
 
-# # Download the NLTK sentence tokenizer data (if not already downloaded)
-# nltk.download('punkt')
+# Download the NLTK sentence tokenizer data (if not already downloaded)
+nltk.download('punkt')
 
-# # Your input text
-# body = '''
-#         Eight people are dead following two shootings at shisha bars in the western German city of Hanau. At least five people were injured after gunmen opened fire at about 22:00 local time (21:00 GMT), police told the BBC. Police added that they are searching for the suspects, who fled the scene and are currently at large. The first shooting was at a bar in the city centre, while the second was in Hanau's Kesselstadt neighbourhood, according to local reports. Police officers and helicopters are patrolling both areas. An unknown number of gunmen killed three people at the first shisha bar, Midnight, before driving to the Arena Bar & Cafe and shooting dead another five victims, regional broadcaster Hessenschau reports. A dark-coloured vehicle was then seen leaving the scene.The motive for the attack is unclear, a police statement said. Can-Luca Frisenna, who works at a kiosk at the scene of one of the shootings said his father and brother were in the area when the attack took place. It's like being in a film, it's like a bad joke, that someone is playing a joke on us, he told Reuters.I can't grasp yet everything that has happened. My colleagues, all my colleagues, they are like my family - they can't understand it either. Hanau, in the state of Hessen, is about 25km (15 miles) east of Frankfurt. It comes four days after another shooting in Berlin, near a Turkish comedy show at the Tempodrom concert venue, which killed one person.
-#         '''
+# Your input text
+body = '''
+        Eight people are dead following two shootings at shisha bars in the western German city of Hanau. At least five people were injured after gunmen opened fire at about 22:00 local time (21:00 GMT), police told the BBC. Police added that they are searching for the suspects, who fled the scene and are currently at large. The first shooting was at a bar in the city centre, while the second was in Hanau's Kesselstadt neighbourhood, according to local reports. Police officers and helicopters are patrolling both areas. An unknown number of gunmen killed three people at the first shisha bar, Midnight, before driving to the Arena Bar & Cafe and shooting dead another five victims, regional broadcaster Hessenschau reports. A dark-coloured vehicle was then seen leaving the scene.The motive for the attack is unclear, a police statement said. Can-Luca Frisenna, who works at a kiosk at the scene of one of the shootings said his father and brother were in the area when the attack took place. It's like being in a film, it's like a bad joke, that someone is playing a joke on us, he told Reuters.I can't grasp yet everything that has happened. My colleagues, all my colleagues, they are like my family - they can't understand it either. Hanau, in the state of Hessen, is about 25km (15 miles) east of Frankfurt. It comes four days after another shooting in Berlin, near a Turkish comedy show at the Tempodrom concert venue, which killed one person.
+        '''
 
-# # BERT tokenizer for extractive part
-# bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+# BERT tokenizer for extractive part
+bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
-# # Tokenize the input text for extractive model
-# inputs_extractive = bert_tokenizer(body, return_tensors="pt", max_length=512, truncation=True, padding=True)
+# Tokenize the input text for extractive model
+inputs_extractive = bert_tokenizer(body, return_tensors="pt", max_length=512, truncation=True, padding=True)
 
-# # Step 1: Extractive Summarization using BERT-based model
-# extractive_model = Summarizer()
-# extractive_summary = ''.join(extractive_model(body, min_length=60))
+# Step 1: Extractive Summarization using BERT-based model
+extractive_model = Summarizer()
+extractive_summary = ''.join(extractive_model(body, min_length=60))
 
-# # GPT2 tokenizer for abstractive part
-# gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-# gpt2_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+# GPT2 tokenizer for abstractive part
+gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+gpt2_tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
-# # Tokenize the extractive summary for abstractive model
-# inputs_abstractive = gpt2_tokenizer(extractive_summary, return_tensors="pt", max_length=512, truncation=True, padding=True)
+# Tokenize the extractive summary for abstractive model
+inputs_abstractive = gpt2_tokenizer(extractive_summary, return_tensors="pt", max_length=512, truncation=True, padding=True)
 
-# # Longformer tokenizer for compressive part
-# longformer_tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
+# Longformer tokenizer for compressive part
+longformer_tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
 
-# # Tokenize the abstractive summary for compressive model
-# inputs_compressive = longformer_tokenizer(abstractive_summary, return_tensors="pt", max_length=4096, truncation=True, padding=True)
+# Tokenize the abstractive summary for compressive model
+inputs_compressive = longformer_tokenizer(abstractive_summary, return_tensors="pt", max_length=4096, truncation=True, padding=True)
 
-# # Step 3: Compressive Summarization using sentence scoring with the output of the abstractive model as input
-# def compression_summary(text, num_sentences=3):
-#     # Reusing the Longformer tokenizer for compression
-#     tokenizer = longformer_tokenizer
+# Step 3: Compressive Summarization using sentence scoring with the output of the abstractive model as input
+def compression_summary(text, num_sentences=3):
+    # Reusing the Longformer tokenizer for compression
+    tokenizer = longformer_tokenizer
 
-#     # Tokenize the text into sentences using NLTK sentence tokenizer
-#     sentences = nltk.sent_tokenize(text)
+    # Tokenize the text into sentences using NLTK sentence tokenizer
+    sentences = nltk.sent_tokenize(text)
 
-#     # Calculate scores for each sentence based on length and position in the text
-#     scores = [len(sent.strip().split()) / len(text.split()) + i / len(sentences) for i, sent in enumerate(sentences)]
+    # Calculate scores for each sentence based on length and position in the text
+    scores = [len(sent.strip().split()) / len(text.split()) + i / len(sentences) for i, sent in enumerate(sentences)]
 
-#     # Sort sentences based on scores and select the top sentences
-#     selected_sentences = [sentences[i] for i in sorted(range(len(scores)), key=lambda k: scores[k], reverse=True)[:num_sentences]]
+    # Sort sentences based on scores and select the top sentences
+    selected_sentences = [sentences[i] for i in sorted(range(len(scores)), key=lambda k: scores[k], reverse=True)[:num_sentences]]
 
-#     # Check if the last character of the generated summary is a period and remove it if present
-#     if selected_sentences[-1].strip().endswith("."):
-#         selected_sentences[-1] = selected_sentences[-1].strip()[:-1]
+    # Check if the last character of the generated summary is a period and remove it if present
+    if selected_sentences[-1].strip().endswith("."):
+        selected_sentences[-1] = selected_sentences[-1].strip()[:-1]
 
-#     return " ".join(selected_sentences)
+    return " ".join(selected_sentences)
 
-# compression_summary_text = compression_summary(abstractive_summary, num_sentences=3)
-# final_summary = compression_summary_text
-# # Final Summary: Combine the output from all three stages
-# print(compression_summary_text)
+compression_summary_text = compression_summary(abstractive_summary, num_sentences=3)
+final_summary = compression_summary_text
+# Final Summary: Combine the output from all three stages
+print(compression_summary_text)
 
 """##### PHASE 2"""
 
